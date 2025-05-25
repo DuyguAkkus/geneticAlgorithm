@@ -1,0 +1,88 @@
+@model geneticAlgorithm.Models.GAResult
+
+@{
+    ViewData["Title"] = "Sonuç";
+}
+
+<div class="result-wrapper">
+
+    <!-- ÜSTTE: Sonuç ve Grafik yan yana -->
+    <div class="result-card-flex">
+        <!-- Sol: Genetik Algoritma Sonucu -->
+        <div class="summary">
+            <h2 class="section-title">Genetik Algoritma Sonucu</h2>
+            <p><strong>X:</strong> @Model.BestSolution.X</p>
+            <p><strong>Y:</strong> @Model.BestSolution.Y</p>
+            <p><strong>Fitness (Amaç Fonksiyonu Değeri):</strong> @Model.BestSolution.Fitness</p>
+        </div>
+        
+
+        <!-- Sağ: Yakınsama Grafiği -->
+        <div class="chart-container">
+            <h2 class="section-title">Yakınsama Grafiği</h2>
+            <canvas id="fitnessChart"></canvas>
+        </div>
+    </div>
+
+    <div class="restart-button-wrapper" style="display: flex; justify-content: flex-end;">
+        <a href="/" class="btn btn-primary">Yeniden Başlat</a>
+    </div>
+
+
+    <!-- ALTTA: Bireyler Tablosu -->
+    <h4 class="section-title">Son Nesildeki Bireyler</h4>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>X</th>
+            <th>Y</th>
+            <th>Fitness</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (int i = 0; i < Model.LastGeneration.Count; i++)
+        {
+            var chromosome = Model.LastGeneration[i];
+            var isBest = Math.Abs(chromosome.Fitness - Model.BestSolution.Fitness) < 0.0001;
+
+            <tr class="@(isBest ? "table-success" : "")">
+                <td>@(i + 1)</td>
+                <td>@chromosome.X</td>
+                <td>@chromosome.Y</td>
+                <td>@chromosome.Fitness</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <!-- Yeniden Başlat Butonu Ortalanmış -->
+    <div class="restart-button-wrapper">
+        <a href="/" class="btn btn-primary">Yeniden Başlat</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const data = {
+            labels: [...Array(@Model.BestFitnessOverGenerations.Count).keys()],
+            datasets: [{
+                label: 'En İyi Fitness',
+                data: @Html.Raw(Json.Serialize(Model.BestFitnessOverGenerations)),
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.4,
+                fill: true
+            }]
+        };
+
+        new Chart(
+            document.getElementById('fitnessChart'),
+            {
+                type: 'line',
+                data: data
+            }
+        );
+    </script>
+}
